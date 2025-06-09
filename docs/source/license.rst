@@ -1,7 +1,7 @@
 License
 ========
 
-Copyright 2017-2023 S. Murthy Kambhampaty
+Copyright 2017-2025 S. Murthy Kambhampaty
 
 MIT License
 -----------

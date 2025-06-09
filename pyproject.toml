@@ -4,7 +4,7 @@ description = "Tools for users of the mergeron package."
 authors = [{ name = "Murthy Kambhampaty", email = "smk@capeconomics.com" }]
 license = "MIT"
 readme = "README.rst"
-version = "2024.739148.7"
+version = "2025.739411.0"
 requires-python = ">=3.12,<4.0"
 
 classifiers = [

@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 from numpy.typing import NDArray
 
-VERSION = "2024.739148.7"
+VERSION = "2025.739411.0"
 
 __version__ = VERSION
 
