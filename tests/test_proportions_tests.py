@@ -129,17 +129,15 @@ def test_propn_diff_ci(
     _counts: Sequence[int],
     _cis: Sequence[float],
 ) -> None:
-    if _idx == 0:
-        num_digits = 4 if _method == "Mee" else 7
-
-    elif _idx in (1, 2):
-        num_digits = 8
-
-    else:
-        num_digits = 4
-
     _test_val = _cis
     _est_val = pci.propn_diff_ci(*_counts, method=_method)[-2:]
+
+    if _idx == 0:
+        num_digits = 4 if _method == "Mee" else 7
+    elif _idx in (1, 2):
+        num_digits = 8
+    else:
+        num_digits = 4
 
     try:
         assert_array_almost_equal(_est_val, _test_val, decimal=num_digits)
@@ -172,7 +170,7 @@ def ques_data() -> dict[str, NDArray[np.int64]]:
             """
     _t1_dat = [f.split(",") for f in _table_1_str.split("\n")[1:-1]]
     return {
-        f[0].strip(): np.array([int(g) for g in f[1:]], dtype=np.int64) for f in _t1_dat
+        f[0].strip(): np.array([int(g) for g in f[1:]], int) for f in _t1_dat
     }
 
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from itertools import starmap
 from typing import Literal
 
 import numpy as np
@@ -29,12 +30,11 @@ def propn_ci(
     method: Literal[
         "Agresti-Coull", "Clopper-Pearson", "Exact", "Wilson", "Score"
     ] = "Wilson",
-) -> tuple[
-    ArrayDouble | float, ArrayDouble | float, ArrayDouble | float, ArrayDouble | float
-]:
-    """Returns point estimates and confidence interval for a proportion
+) -> ArrayDouble:
+    """
+    Point estimates and confidence interval for a proportion.
 
-    Methods "Clopper-Pearson" and "Exact" are synoymous [3]_.  Similarly,
+    Methods "Clopper-Pearson" and "Exact" are synonymous [3]_.  Similarly,
     "Wilson" and "Score" are synonyms here.
 
     Parameters
@@ -65,15 +65,13 @@ def propn_ci(
        https://doi.org/10.1080/00031305.1998.10480550
 
     """
-
-    for _f in _npos, _nobs:
-        if not isinstance(_f, int | np.integer):
-            raise ValueError(
-                f"Count, {_f!r} must have type that is a subtype of np.integer."
-            )
-
-    if not _nobs:
-        return (np.nan, np.nan, np.nan, np.nan)
+    if any((
+        isinstance(_nobs, float) and not _nobs,
+        isinstance(_nobs, np.ndarray) and not _nobs.any(),
+        isinstance(_npos, float) and not _npos,
+        isinstance(_npos, np.ndarray) and not _npos.any(),
+    )):
+        return ArrayDouble([np.nan, np.nan, np.nan, np.nan])
 
     _raw_phat: ArrayDouble | float = _npos / _nobs
     _est_phat: ArrayDouble | float
@@ -82,12 +80,12 @@ def propn_ci(
 
     match method:
         case "Clopper-Pearson" | "Exact":
-            _est_ci_l, _est_ci_u = (
-                beta.ppf(*_f)
-                for _f in (
+            _est_ci_l, _est_ci_u = starmap(
+                beta.ppf,
+                (
                     (alpha / 2, _npos, _nobs - _npos + 1),
                     (1 - alpha / 2, _npos + 1, _nobs - _npos),
-                )
+                ),
             )
             _est_phat = 1 / 2 * (_est_ci_l + _est_ci_u)
 
@@ -120,7 +118,8 @@ def propn_ci(
         case _:
             raise ValueError(f"Method, {f'"{method}"'} not yet implemented.")
 
-    return _raw_phat, _est_phat, _est_ci_l, _est_ci_u
+    retlist = [_raw_phat, _est_phat, _est_ci_l, _est_ci_u]
+    return ArrayDouble(retlist if isinstance(_npos, int) else np.hstack(retlist))
 
 
 def propn_ci_multinomial(
@@ -165,18 +164,22 @@ def propn_ci_multinomial(
 
     if alternative == "default":
         _ci_len_half = np.sqrt(_chi2_cr * (_chi2_cr + 4 * _n * _prob * (1 - _prob)))
-        return np.column_stack([
-            (_chi2_cr + 2 * _counts + _f * _ci_len_half) / (2 * (_n + _chi2_cr))
-            for _f in (-1, 1)
-        ])
+        return ArrayDouble(
+            np.column_stack([
+                (_chi2_cr + 2 * _counts + _f * _ci_len_half) / (2 * (_n + _chi2_cr))
+                for _f in (-1, 1)
+            ])
+        )
 
     elif alternative == "simplified":
         _ci_len_half = np.sqrt(_chi2_cr * _prob * (1 - _prob) / _n)
-        return np.column_stack([_prob + _f * _ci_len_half for _f in (-1, 1)])
+        return ArrayDouble(
+            np.column_stack([_prob + _f * _ci_len_half for _f in (-1, 1)])
+        )
 
     else:
         raise ValueError(
-            f"Invalid value, {f'"{alternative}"'} for, \"alternative\". "
+            f'Invalid value, {f'"{alternative}"'} for, "alternative". '
             f"Must be one of '{'("default", "simplified")'}'."
         )
 
@@ -190,7 +193,7 @@ def propn_diff_ci(
     *,
     alpha: float = 0.05,
     method: Literal["Agresti-Caffo", "Mee", "M-N", "Newcombe", "Score"] = "M-N",
-) -> tuple[float, float, float, float]:
+) -> ArrayDouble:
     R"""Confidence intervals for differences in binomial proportions.
 
     Methods available are Agresti-Caffo [4]_, Mee [5]_, Meitinen-Nurminen [5]_ [6]_
@@ -239,7 +242,7 @@ def propn_diff_ci(
             )
 
     if not min(_nobs1, _nobs2):
-        return (np.nan, np.nan, np.nan, np.nan)
+        return ArrayDouble((np.nan, np.nan, np.nan, np.nan))
 
     match method:
         case "Agresti-Caffo":
@@ -260,7 +263,7 @@ def propn_diff_ci(
         case _:
             raise ValueError(f"Method, {f'"{method}"'} not implemented.")
 
-    return _res
+    return ArrayDouble(_res)
 
 
 def _propn_diff_ci_agresti_caffo(
@@ -276,7 +279,6 @@ def _propn_diff_ci_agresti_caffo(
     Estimate Agresti-Caffo confidence intervals for differences of
     multiple proportions.
     """
-
     _diff_hat = _npos1 / _nobs1 - _npos2 / _nobs2
 
     _zsc = norm.ppf(1 - alpha / 2)
@@ -327,16 +329,18 @@ def _propn_diff_ci_newcombe_score(
 
 
 def _propn_diff_ci_mn(
-    _npos1: int = 4,
-    _nobs1: int = 10,
-    _npos2: int = 4,
-    _nobs2: int = 10,
+    _npos1: int | np.integer = 4,
+    _nobs1: int | np.integer = 10,
+    _npos2: int | np.integer = 4,
+    _nobs2: int | np.integer = 10,
     /,
     *,
     alpha: float = 0.05,
     method: Literal["M-N", "Mee"] = "M-N",
 ) -> tuple[float, float, float, float]:
     """
+    Meittinen-Nurminen (1985; Newcombe (1998)).
+
     See Miettinen and Nurminen (1985; Newcombe (1998);
         and StasAndCIs.r -> BinomDiffCi -> "mn".
 
@@ -354,7 +358,7 @@ def _propn_diff_ci_mn(
 
     _ci_est_start = np.array([(_diff_hat + _s) / 2 for _s in (-1, 1)])
     # Avoid potential corner cases
-    _ci_est_offset = (1 - 1.055e-2, 1)
+    _ci_est_offset = (1 - 1.025e-2, 1)
     if _diff_hat == 1.0:
         _ci_est_start += _ci_est_offset
     elif _diff_hat == -1.0:
@@ -384,8 +388,12 @@ def _propn_diff_chisq_mn(
     *,
     method: Literal["M-N", "Mee"] = "M-N",
 ) -> float:
-    R"""Estimate the :math:`\chi^2` statistic for the Meittinen-Nurminen (1985),
-    and Newcombe (1998) confidence intervals for a difference in binomial proportions.
+    R"""
+    Estimate :math:`\chi^2` statistic for a difference in binomial proportions.
+
+    This  :math:`\chi^2` statistic is used in the methods of Meittinen-Nurminen (1985),
+    and Newcombe (1998) for estimating confidence intervals for a difference in
+    binomial proportions.
 
     Parameters
     ----------
@@ -454,7 +462,6 @@ def propn_diff_ci_multinomial(
         Array of confidence intervals
 
     """
-
     if len(_counts.shape) > 2:
         raise ValueError(
             "This implementation is only valid for estimating confidence intervals "
@@ -465,7 +472,9 @@ def propn_diff_ci_multinomial(
     _var = np.einsum("jk->j", _prob * (1 - _prob) / _counts)[:, None]
 
     _d, _d_cr = np.diff(_prob, axis=1), norm.ppf(1 - (alpha / len(_counts)))
-    return np.column_stack([_d + _f * _d_cr * np.sqrt(_var) for _f in (-1, 1)])
+    return ArrayDouble(
+        np.column_stack([_d + _f * _d_cr * np.sqrt(_var) for _f in (-1, 1)])
+    )
 
 
 @dataclass(slots=True, frozen=True)
@@ -496,7 +505,6 @@ def propn_test_multinomial(
         Estimated statistic, degrees of freedom, critical value, p-value
 
     """
-
     _n = np.einsum("jk->", _counts).astype(np.int64)
     _n_k = np.einsum("jk->k", _counts).astype(np.int64)
     _prob = _counts / _n_k
