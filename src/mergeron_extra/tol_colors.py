@@ -16,6 +16,7 @@ from collections.abc import Callable, Sequence
 from typing import Final, Literal, TypeAlias
 
 import numpy as np
+from matplotlib import pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, to_rgba_array
 
 
@@ -29,7 +30,7 @@ def discretemap(colormap: str, hexclrs: Sequence[str]) -> LinearSegmentedColorma
         Literal["red", "green", "blue", "alpha"], Sequence[tuple[float, ...]]
     ] = {}
     for ki, key in enumerate(("red", "green", "blue")):
-        cdict[key] = [  # type: ignore
+        cdict[key] = [
             (i / (len(clrs) - 2.0), clrs[i, ki], clrs[i + 1, ki])
             for i in range(len(clrs) - 1)
         ]
@@ -670,18 +671,55 @@ TCName: TypeAlias = Literal[
     "bright", "high-contrast", "vibrant", "muted", "medium-contrast", "light"
 ]
 TCNameList: TypeAlias = tuple[TCName, ...]
-Bcset = namedtuple("Bcset", "blue red green yellow cyan purple grey black")
-Hcset = namedtuple("Hcset", "blue yellow red black")
-Vcset = namedtuple("Vcset", "orange blue cyan magenta red teal grey black")
+Bcset = namedtuple(
+    "Bcset", ["blue", "red", "green", "yellow", "cyan", "purple", "grey", "black"]
+)
+Hcset = namedtuple("Hcset", ["blue", "yellow", "red", "black"])
+Vcset = namedtuple(
+    "Vcset", ["orange", "blue", "cyan", "magenta", "red", "teal", "grey", "black"]
+)
 Muset = namedtuple(
-    "Muset", "rose indigo sand green cyan wine teal olive purple pale_grey black"
+    "Muset",
+    [
+        "rose",
+        "indigo",
+        "sand",
+        "green",
+        "cyan",
+        "wine",
+        "teal",
+        "olive",
+        "purple",
+        "pale_grey",
+        "black",
+    ],
 )
 Mcset = namedtuple(
-    "Mcset", "light_blue dark_blue light_yellow dark_red dark_yellow light_red black"
+    "Mcset",
+    [
+        "light_blue",
+        "dark_blue",
+        "light_yellow",
+        "dark_red",
+        "dark_yellow",
+        "light_red",
+        "black",
+    ],
 )
 Lcset = namedtuple(
     "Lcset",
-    "light_blue orange light_yellow pink light_cyan mint pear olive pale_grey black",
+    [
+        "light_blue",
+        "orange",
+        "light_yellow",
+        "pink",
+        "light_cyan",
+        "mint",
+        "pear",
+        "olive",
+        "pale_grey",
+        "black",
+    ],
 )
 
 
@@ -781,7 +819,6 @@ def tol_cset(  # noqa: PLR0911
 
 
 def main() -> None:
-    from matplotlib import pyplot as plt
 
     # Change default colorset (for lines) and colormap (for maps).
     #    plt.rc('axes', prop_cycle=plt.cycler('color', list(tol_cset('bright'))))
