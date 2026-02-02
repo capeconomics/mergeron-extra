@@ -116,24 +116,36 @@ ignore = [
     # flake-8 line length
     "E501",
     # pycodestyle
-    'E741',
+    "E741",
     # flake8-bugbear
-    'B006',
-    'B023',
+    "B006",
+    "B023",
     # flake8-bugbear opinionated (disabled by default in flake8)
-    'B904',
-    'B905',
+    "B904",
+    "B905",
     "PLR2004", # avoid magic values
+    # RUF
+    "RUF052",
     # flake8-type-checking
-    "TCH001", # move application import into a type-checking block
-    "TCH002", # move third-party import into a type-checking block
-    "TCH003", # move third-party import into a type-checking block
+    "TC001", # move application import into a type-checking block
+    "TC002", # move third-party import into a type-checking block
+    "TC003", # move third-party import into a type-checking block
     # Use typing.TypeAlias for now:
     # mypy yet to implements PEP 695 type aliases;
     # sphinx (as setup here) gives different results with TypeAlias and typing statement
     "UP040",
 ]
+
 isort.split-on-trailing-comma = false
+
+# We define package/subpackage types and constants in __init__.py files.
+ruff.strictly-empty-init-modules = false
+
+pydocstyle.convention = "numpy"
+
+[tool.ruff.pylint]
+max-branches = 16
+max-locals = 24
 
 [tool.ruff.format]
 quote-style = "double"
@@ -165,5 +177,6 @@ filterwarnings = [
     "all",
     "ignore::DeprecationWarning:dateutil.tz.tz",
     "ignore::DeprecationWarning:openpyxl.packaging.core",
+    "ignore::RuntimeWarning:mergeron_extra.proportions_tests",
 ]
 tmp_path_retention_policy = "failed"
