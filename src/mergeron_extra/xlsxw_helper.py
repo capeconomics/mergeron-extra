@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from types import MappingProxyType
-from typing import Any, ClassVar, Literal, TypeAlias, TypedDict, overload
+from typing import Any, ClassVar, Literal, TypedDict, overload
 
 import numpy as np
 from aenum import Enum, extend_enum, unique  # type: ignore
@@ -39,38 +39,39 @@ from . import VERSION
 __version__ = VERSION
 
 
-XLBorderType: TypeAlias = Literal[
-    "none",
-    "thin",
-    "medium",
-    "dashed",
-    "dotted",
-    "thick",
-    "double",
-    "hair",
-    "medium_dashed",
-    "dash_dot",
-    "medium_dash_dot",
-    "dash_dot_dot",
-    "medium_dash_dot_dot",
-    "slant_dash_dot",
-    True,
-    False,
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-]
+type XLBorderType = (
+    Literal[
+        "none",
+        "thin",
+        "medium",
+        "dashed",
+        "dotted",
+        "thick",
+        "double",
+        "hair",
+        "medium_dashed",
+        "dash_dot",
+        "medium_dash_dot",
+        "dash_dot_dot",
+        "medium_dash_dot_dot",
+        "slant_dash_dot",
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+    ]
+    | bool
+)
 
 
 class CFmtVal(TypedDict, total=False):
@@ -91,18 +92,12 @@ class CFmtVal(TypedDict, total=False):
     shrink: bool
     bold: bool
     italic: bool
-    underline: Literal[
-        True,
-        False,
-        1,
-        2,
-        33,
-        34,
-        "single",
-        "double",
-        "accountingSingle",
-        "accountingDouble",
-    ]
+    underline: (
+        bool
+        | Literal[
+            1, 2, 33, 34, "single", "double", "accountingSingle", "accountingDouble"
+        ]
+    )
     font_strikeout: bool
     font_script: Literal[1, 2]
 
@@ -134,7 +129,7 @@ class CFmtVal(TypedDict, total=False):
 
 
 @unique
-class CFmt(Enum):  # type: ignore
+class CFmt(MappingProxyType, Enum):
     """
     Cell format enums for xlsxwriter Format objects.
 
