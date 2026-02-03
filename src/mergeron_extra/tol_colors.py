@@ -30,7 +30,7 @@ def discretemap(colormap: str, hexclrs: Sequence[str]) -> LinearSegmentedColorma
         Literal["red", "green", "blue", "alpha"], Sequence[tuple[float, ...]]
     ] = {}
     for ki, key in enumerate(("red", "green", "blue")):
-        cdict[key] = [
+        cdict[key] = [  # type: ignore
             (i / (len(clrs) - 2.0), clrs[i, ki], clrs[i + 1, ki])
             for i in range(len(clrs) - 1)
         ]

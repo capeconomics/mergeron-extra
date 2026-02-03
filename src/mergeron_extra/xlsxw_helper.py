@@ -129,7 +129,7 @@ class CFmtVal(TypedDict, total=False):
 
 
 @unique
-class CFmt(MappingProxyType, Enum):
+class CFmt(Enum):  # type: ignore
     """
     Cell format enums for xlsxwriter Format objects.
 
@@ -256,7 +256,14 @@ class CFmt(MappingProxyType, Enum):
     def xl_fmt(
         cls,
         _xl_book: Workbook,
-        _cell_format: Sequence[CFmt | Sequence[CFmt]] | CFmt | None,
+        _cell_format: CFmt
+        | MappingProxyType[CFmtVal, Any]
+        | Sequence[
+            CFmt
+            | MappingProxyType[CFmtVal, Any]
+            | Sequence[CFmt | MappingProxyType[CFmtVal, Any]]
+        ]
+        | None,
         /,
     ) -> Format:
         """
@@ -285,17 +292,17 @@ class CFmt(MappingProxyType, Enum):
         if isinstance(_cell_format, Format):
             return _cell_format
         elif _cell_format is None:
-            return _xl_book.add_format(CFmt.XL_DEFAULT.value)
+            return _xl_book.add_format(CFmt.XL_DEFAULT.value)  # type: ignore
 
         _cell_format_dict: CFmtVal = {}
         if isinstance(_cell_format, Sequence):
-            cls.ensure_cell_format_spec_tuple(_cell_format)
+            cls.ensure_cell_format_spec_tuple(_cell_format)  # type: ignore
             for _cf in _cell_format:
                 if isinstance(_cf, Sequence):
                     for _cfi in _cf:
-                        _cell_format_dict |= _cfi.value
+                        _cell_format_dict |= _cfi.value  # type: ignore
                 else:
-                    _cell_format_dict |= _cf.value
+                    _cell_format_dict |= _cf.value  # type: ignore
         elif isinstance(_cell_format, CFmt):
             _cell_format_dict = _cell_format.value
         else:
@@ -497,7 +504,11 @@ def array_to_sheet(
     _num_cols = len(_data_table[0])
     _right_column_id = _col_id + _num_cols
 
-    _cell_format: Sequence[CFmt | Sequence[CFmt]]
+    _cell_format: Sequence[
+        CFmt
+        | MappingProxyType[CFmtVal, Any]
+        | Sequence[CFmt | MappingProxyType[CFmtVal, Any]]
+    ]
     if isinstance(cell_format, Sequence):
         if _num_rows > 1 and ragged_flag:
             raise ValueError(
@@ -512,7 +523,7 @@ def array_to_sheet(
     elif isinstance(cell_format, CFmt):
         _cell_format = (cell_format,) * len(_data_table[0])
     else:
-        _cell_format = (CFmt.XL_DEFAULT,) * len(_data_table[0])
+        _cell_format = (CFmt.XL_DEFAULT,) * len(_data_table[0])  # type: ignore
 
     # construct vector of xlslwrter.format.Format objects
     _wbk_formats = tuple(CFmt.xl_fmt(_xl_book, _cf) for _cf in _cell_format)
@@ -522,7 +533,7 @@ def array_to_sheet(
             tuple(
                 CFmt.xl_fmt(
                     _xl_book,
-                    (*_cf, CFmt.BAR_FILL)
+                    (*_cf, CFmt.BAR_FILL)  # type: ignore
                     if isinstance(_cf, Sequence)
                     else (_cf, CFmt.BAR_FILL),
                 )

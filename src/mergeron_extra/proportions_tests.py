@@ -13,10 +13,11 @@ from itertools import starmap
 from typing import Literal
 
 import numpy as np
+from mergeron import ArrayDouble, ArrayINT
 from scipy.optimize import OptimizeResult, root  # type: ignore
 from scipy.stats import beta, chi2, norm  # type: ignore
 
-from . import VERSION, ArrayDouble, ArrayINT
+from . import VERSION
 
 __version__ = VERSION
 
@@ -73,7 +74,9 @@ def propn_ci(
     )):
         return ArrayDouble([np.nan, np.nan, np.nan, np.nan])
 
-    _raw_phat: ArrayDouble | float = _npos / _nobs
+    _raw_phat = (
+        ArrayDouble(_npos / _nobs) if isinstance(_npos, np.ndarray) else _npos / _nobs
+    )
     _est_phat: ArrayDouble | float
     _est_ci_l: ArrayDouble | float
     _est_ci_u: ArrayDouble | float
@@ -87,13 +90,13 @@ def propn_ci(
                     (1 - alpha / 2, _npos + 1, _nobs - _npos),
                 ),
             )
-            _est_phat = 1 / 2 * (_est_ci_l + _est_ci_u)
+            _est_phat = 1 / 2 * (_est_ci_l + _est_ci_u)  # type: ignore
 
         case "Agresti-Coull":
             _zsc = norm.ppf(1 - alpha / 2)
             _zscsq = _zsc * _zsc
             _adjmt = 4 if alpha == 0.05 else _zscsq
-            _est_phat = (_npos + _adjmt / 2) / (_nobs + _adjmt)
+            _est_phat = (_npos + _adjmt / 2) / (_nobs + _adjmt)  # type: ignore
             _est_ci_l, _est_ci_u = (
                 _est_phat + _g
                 for _g in [
@@ -119,7 +122,7 @@ def propn_ci(
             raise ValueError(f"Method, {f'"{method}"'} not yet implemented.")
 
     retlist = [_raw_phat, _est_phat, _est_ci_l, _est_ci_u]
-    return ArrayDouble(retlist if isinstance(_npos, int) else np.hstack(retlist))
+    return ArrayDouble(retlist if isinstance(_npos, int) else np.hstack(retlist))  # type: ignore
 
 
 def propn_ci_multinomial(

@@ -24,12 +24,14 @@ classifiers = [
 dependencies = [
     # You may need to apply the fixes in, https://github.com/python-poetry/poetry/issues/3365
     # if poetry dependency resolution appears to hang (read the page at link to the end)
+    "mergeron >= 2026.739636.0",
     "aenum >= 3.1.15",
     "matplotlib >= 3.8",
     "numpy >= 2.0",
     "scipy >= 1.12",
     "xlsxwriter >= 3.1",
     "certifi >= 2023.11.17",
+    "frozendict>=2.4.7",
 ]
 
 
@@ -38,21 +40,23 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 
-[tool.poetry.group.dev.dependencies]
-icecream = ">=2.1.0"
-mypy = ">=1.8"
-openpyxl = ">=3.1.2"
-pendulum = ">=3.0.0"
-ruff = ">=0.5"
-poetry-plugin-export = "^1.8.0"
-pytest = ">=8.0"
-semver = ">=3.0"
-sphinx = ">=7.2"
-sphinx-autodoc-typehints = ">=2.0.0"
-sphinx-autoapi = ">=3.0"
-sphinx-immaterial = ">=0.11"
-pipdeptree = ">=2.15.1"
-types-openpyxl = ">=3.0.0"
+[dependency-groups]
+dev = [
+    "icecream>=2.1.0",
+    "mypy>=1.8",
+    "openpyxl>=3.1.2",
+    "pendulum>=3.0.0",
+    "ruff>=0.5",
+    "poetry-plugin-export>=1.8.0,<1.9.0",
+    "pytest>=8.0",
+    "semver>=3.0",
+    "sphinx>=7.2",
+    "sphinx-autodoc-typehints>=2.0.0",
+    "sphinx-autoapi>=3.0",
+    "sphinx-immaterial>=0.11",
+    "pipdeptree>=2.15.1",
+    "types-openpyxl>=3.0.0",
+]
 
 [tool.ruff]
 
@@ -165,8 +169,6 @@ show_error_context = true
 
 no_implicit_optional = true
 no_implicit_reexport = true
-
-plugins = "numpy.typing.mypy_plugin"
 
 [tool.pytest.ini_options]
 log_auto_indent = 4
